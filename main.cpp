@@ -142,6 +142,7 @@ int main() {
                 while(!found){
                     cout << "Enter ticker symbol: ";
                     cin >> inputSymbol;
+                    transform(inputSymbol.begin(), inputSymbol.end(), inputSymbol.begin(), ::toupper);
                     cout << endl;
                     
                     std::array<const std::vector<Ticker>*, 3> tickerLists = {&missTickers, &meetTickers, &beatTickers};
