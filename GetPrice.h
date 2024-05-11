@@ -23,7 +23,7 @@ namespace fre {
     };
     vector<string> GetDates(map<string, double> priceMap);
     vector<double> GetPrices(map<string, double> priceMap);
-    vector<double> CalcBenchmarkReturn(string startDate, string endDate, map<string, double>& benchmark);
+    vector<double> BenchmarkRet(string startDate, string endDate, map<string, double>& benchmark);
     string startDay(vector<string> tradingDays, string day0, int N);
     string endDay(vector<string> tradingDays, string day0, int N);
     string convert_date(string date); 
