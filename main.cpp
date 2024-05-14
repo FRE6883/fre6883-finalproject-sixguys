@@ -23,7 +23,8 @@ using namespace std;
 using namespace fre;
 
 void DisplayMenu()
-{   cout << "Menu Display: \n";
+{   
+    cout << "Menu Display: \n";
     cout << "1 - Enter N to retrieve 2N+1 days of historical price data for all stocks.\n";
     cout << "2 - Pull information for one stock from one group.\n";
     cout << "3 - Show AAR, AAR-STD, CAAR and CAAR-STD for one group.\n";
@@ -32,20 +33,15 @@ void DisplayMenu()
     cout << "-------------------------------------------------------------------------------\n";
 }
 
-
 int main() {
     
     map<string, double> historical_benchmark_prices;
+    map<string, Ticker> miss, meet, beat;
     
-    map<string, Ticker> miss;
-    map<string, Ticker> meet;
-    map<string, Ticker> beat;
+    const char* IWV3000SymbolFile = "Russell3000EarningsAnnouncements.csv";
+    groupSeperation(IWV3000SymbolFile, miss, meet, beat);
     
-    const char* cIWB3000SymbolFile = "Russell3000EarningsAnnouncements.csv";
-    groupSeperation(cIWB3000SymbolFile, miss, meet, beat);
-    vector<Ticker> missTickers;
-    vector<Ticker> meetTickers;
-    vector<Ticker> beatTickers;
+    vector<Ticker> missTickers, meetTickers, beatTickers;
     
     for (const auto& item : miss) {
         missTickers.push_back(item.second);
@@ -57,24 +53,16 @@ int main() {
         beatTickers.push_back(item.second);
     }
     
+    // Declare variables outside the switch statement
     vector<Vector> AAR_avg(3), CAAR_avg(3), AAR_std(3), CAAR_std(3);
-    
     GNUPLOT gnuplot;
     
-    
     char choice;
-    bool getData = 0;
+    bool getData = false;
     int N;
     string input;
-    std::thread missThread;
-    std::thread meetThread;
-    std::thread beatThread;
-    
-    // std::future<int> missTask;
-    // std::future<int> meetTask;
-    // std::future<int> beatTask;
-    
-
+    std::thread missThread, meetThread, beatThread;
+    vector<vector<vector<double>>> matrix(3, vector<vector<double>>(4));
 
     do {
         DisplayMenu();
@@ -85,7 +73,7 @@ int main() {
         cout << endl;
 
         switch(choice) {
-            case '1':{
+            case '1': {
                 while(true) {
                     cout << "Enter N (where 60 <= N <= 90): ";
                     getline(cin, input);  // Read the entire line as string
@@ -116,21 +104,23 @@ int main() {
                 chrono::duration<double> elapsed = end - start; // Calculate elapsed time
                 cout << "[Choice 1]: Elapsed time for getting data: " << elapsed.count() << " seconds." << endl;
                 
-                getData = 1;
-                
-                
+                getData = true;
                 Bootstrap(missTickers, meetTickers, beatTickers, AAR_avg, CAAR_avg, AAR_std, CAAR_std);
                 
                 
+                for(int n = 0; n < 3; n++) {
+                    matrix[n][0] = AAR_avg[n];
+                    matrix[n][1] = CAAR_avg[n];
+                    matrix[n][2] = AAR_std[n];
+                    matrix[n][3] = CAAR_std[n];
+                }
                 
                 cout << "[Choice 1]: finish choice 1. Returning to menu..." << endl << endl;
                 break;
             }
 
-            case '2':
-            {
-                if (!getData) 
-                {
+            case '2': {
+                if (!getData) {
                     cout << "[Choice 2]: data have not been fetched or processed. Please try option 1 first. Returning to menu..." << endl<< endl;
                     break;
                 }
@@ -139,7 +129,7 @@ int main() {
                 bool found = false;
                 Ticker found_ticker;
                 
-                while(!found){
+                while(!found) {
                     cout << "Enter ticker symbol: ";
                     cin >> inputSymbol;
                     transform(inputSymbol.begin(), inputSymbol.end(), inputSymbol.begin(), ::toupper);
@@ -190,6 +180,7 @@ int main() {
                 cout <<"[Choice 2]: finish choice 2. Returning to menu..."  << endl << endl;
                 break;
             }   
+            
             case '3':
             {
                 if (!getData) 
@@ -204,38 +195,38 @@ int main() {
                     if (group == "Beat")
                     {
                         cout << "AAR_avg: " << endl;
-                        cout << AAR_avg[0] << endl;
+                        cout << matrix[0][0] << endl;
                         cout << "AAR_std: " << endl;
-                        cout << AAR_std[0] << endl;
+                        cout <<  matrix[0][2] << endl;
                         
                         cout << "CAAR_avg: " << endl;
-                        cout << CAAR_avg[0] << endl;
+                        cout <<  matrix[0][1] << endl;
                         cout << "CAAR_std: " << endl;
-                        cout << CAAR_std[0] << endl;
+                        cout <<  matrix[0][3] << endl;
                     }
                     else if (group == "Meet")
                     {
                         cout << "AAR_avg: " << endl;
-                        cout << AAR_avg[1] << endl;
+                        cout << matrix[1][0] << endl;
                         cout << "AAR_std: " << endl;
-                        cout << AAR_std[1] << endl;
+                        cout << matrix[1][2] << endl;
                         
                         cout << "CAAR_avg: " << endl;
-                        cout << CAAR_avg[1] << endl;
+                        cout << matrix[1][1] << endl;
                         cout << "CAAR_std: " << endl;
-                        cout << CAAR_std[1] << endl;
+                        cout << matrix[1][3] << endl;
                     }
                     else if (group == "Miss")
                     {
                         cout << "AAR_avg: " << endl;
-                        cout << AAR_avg[2] << endl;
+                        cout << matrix[2][0] << endl;
                         cout << "AAR_std: " << endl;
-                        cout << AAR_std[2] << endl;
+                        cout << matrix[2][2] << endl;
                         
                         cout << "CAAR_avg: " << endl;
-                        cout << CAAR_avg[2] << endl;
+                        cout << matrix[2][1] << endl;
                         cout << "CAAR_std: " << endl;
-                        cout << CAAR_std[2] << endl;
+                        cout << matrix[2][3] << endl;
                     }
                     else { cout << "[Choice 3]: invalid user input. Please try again." << endl; }
                 } while((group != "Beat") & (group != "Meet") & (group != "Miss"));
@@ -249,9 +240,9 @@ int main() {
                     break;
                 }
                 // cout <<CAAR_avg[0];
-                gnuplot.SetBeat(CAAR_avg[0]);
-                gnuplot.SetMeet(CAAR_avg[1]);
-                gnuplot.SetMiss(CAAR_avg[2]);
+                gnuplot.SetBeat(matrix[0][1]);
+                gnuplot.SetMeet(matrix[1][1]);
+                gnuplot.SetMiss(matrix[2][1]);
                 gnuplot.plot();
                 cout << "[Choice 4]: finish choice 4. Returning to menu..." << endl << endl;
                 break;

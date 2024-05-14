@@ -166,7 +166,8 @@ namespace fre {
     		tradingDays = GetDates(benchmark);
  			string url_common = "https://eodhistoricaldata.com/api/eod/";
  			// You must replace this API token with yours 
- 			string api_token = "662166cb8e3d13.57537943";
+ 			string api_token = "6622179d9d7205.32281540";
+ 	
  			
  			for (vector<Ticker>::iterator itr = tickers.begin(); itr != tickers.end(); itr++) {
  				
@@ -174,7 +175,7 @@ namespace fre {
  				string startDate = startDay(tradingDays, day0, N);
  				string endDate = endDay(tradingDays, day0, N);
  				
- 				if (startDate == "Skip" || endDate == "Skip"){
+ 				if (startDate == "ERROR" || endDate == "ERROR"){
  				    cout << "Insufficient data for " << itr->GetSymbol() << endl;
  				    continue;
  				}
